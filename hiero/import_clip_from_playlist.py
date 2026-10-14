@@ -22,7 +22,7 @@ class SGPlaylistDialog(QtGui.QDialog):
     def __init__(self):
         super(SGPlaylistDialog, self).__init__()
 
-        self.ini_file = "{}/.nuke/sg_playlist_fields_to_hiero.ini".format(os.environ["userprofile"])
+        self.ini_file = f"{os.environ['userprofile']}/.nuke/sg_playlist_fields_to_hiero.ini"
         self.layout = QtGui.QFormLayout()
         self.setLayout(self.layout)
         self.ini_fields = ["sg_path_to_frames"]
@@ -91,7 +91,7 @@ class SGPlaylistDialog(QtGui.QDialog):
         self.buttons.rejected.connect(self.reject)
 
         self.layout.addRow("Playlist URL:", self.url_edit)
-        self.layout.addRow("Select SG Fields:", self.field_box)
+        self.layout.addRow("Select PTR Fields:", self.field_box)
         self.layout.addRow(add_button, reset_button)
         self.layout.addRow(self.buttons)
 
@@ -166,7 +166,7 @@ class ImportFromSGPlaylist(object):
         if not isinstance(self.selection, Bin):
             return
 
-        action = event.menu.addAction("Import Files from SG Playlist")
+        action = event.menu.addAction("Import Files from PTR Playlist")
         action.triggered.connect(self.import_from_playlist)
 
     def import_from_playlist(self):
@@ -184,9 +184,8 @@ class ImportFromSGPlaylist(object):
             QtGui.QMessageBox.critical(
                 None,
                 "Error finding Playist",
-                "URL seems not to refer to a Playlist or is corrupted:\n{}".format(
-                    self.dialog.url_edit.text()
-                ),
+                "URL seems not to refer to a Playlist or is corrupted:\n"
+                + self.dialog.url_edit.text(),
             )
             self.import_from_playlist()
             return
@@ -225,7 +224,7 @@ class ImportFromSGPlaylist(object):
                     os.path.dirname(version[field]), media_source.filenameHead() + "json"
                 )
                 if not os.path.isfile(buddy_file):
-                    no_colourspace.append("{} ({})".format(clip.name(), field))
+                    no_colourspace.append(f"{clip.name()} ({field})")
                     continue
 
                 with open(buddy_file, "r") as filehandler:

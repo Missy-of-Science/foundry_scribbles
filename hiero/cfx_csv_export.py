@@ -308,36 +308,38 @@ class CSVExportTask(ShotgunHieroObjectBase, hiero.core.TaskBase):
             )
             self.addResolver(
                 "{shotCode}",
-                "Shot as in Shotgun",
+                "Shot as in Flow PTR",
                 lambda keyword, trackItem: self.__getShotCode(trackItem.source().name()),
             )
             self.addResolver(
                 "{clip}",
                 "Name of the source Media clip being processed",
-                lambda keyword, trackItem: trackItem.source().name()
-                if trackItem.source()
-                else None,
+                lambda keyword, trackItem: (
+                    trackItem.source().name() if trackItem.source() else None
+                ),
             )
             self.addResolver(
                 "{track}",
                 "Name of the track being processed",
-                lambda keyword, trackItem: trackItem.parent().name()
-                if trackItem.parent()
-                else None,
+                lambda keyword, trackItem: (
+                    trackItem.parent().name() if trackItem.parent() else None
+                ),
             )
             self.addResolver(
                 "{sequence}",
                 "Name of the Sequence being processed",
-                lambda keyword, trackItem: trackItem.parent().parent().name()
-                if trackItem.parent().parent()
-                else None,
+                lambda keyword, trackItem: (
+                    trackItem.parent().parent().name() if trackItem.parent().parent() else None
+                ),
             )
             self.addResolver(
                 "{fps}",
                 "Frame rate of the Sequence",
-                lambda keyword, trackItem: str(trackItem.parent().parent().framerate())
-                if trackItem.parent().parent()
-                else None,
+                lambda keyword, trackItem: (
+                    str(trackItem.parent().parent().framerate())
+                    if trackItem.parent().parent()
+                    else None
+                ),
             )
             self.addResolver(
                 "{filename}",
@@ -426,7 +428,7 @@ class CSVExportUI(ShotgunHieroObjectBase, TaskUIBase):
             self._preset.properties()["handleLength"] = int(self._handleLineEdit.text())
 
     def slateCheckBoxChanged(self, state):
-        if state == QtCore.Qt.Checked:
+        if QtCore.Qt.CheckState(state) == QtCore.Qt.Checked:
             self._preset.properties()["slate"] = 1
         else:
             self._preset.properties()["slate"] = 0
@@ -546,4 +548,3 @@ class CSVExportUI(ShotgunHieroObjectBase, TaskUIBase):
         formLayout.addRow("", QtGui.QLabel(""))
         formLayout.addRow("Handle Length", self._handleLineEdit)
         formLayout.addRow("create Slate", slateCheckBox)
-

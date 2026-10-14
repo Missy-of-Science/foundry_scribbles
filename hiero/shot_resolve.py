@@ -1,8 +1,9 @@
 """
 Rename Shots with some string logic
 Class Call in set_cut_and_handle_fields.py
-    this prevents double menu entries as this file is imported in there
+    this prevents double menu entries
 """
+
 import re
 
 import hiero
@@ -21,7 +22,7 @@ class ListBoxDialog(QtGui.QDialog):
             ("item.source().name()", '{"_".join(clip.split("_")[1:4])}'),
             ("item.name()", "{shot}"),
             ("item.source().mediaSource().filename()", '{"_".join(filename.split("_")[1:4])}'),
-            ("item.name()", "{" + "shot[{}:{}]".format(project_end, project_end + 11) + "}"),
+            ("item.name()", "{" + f"shot[{project_end}:{project_end + 11}]" + "}"),
         ]
 
         self.layout().addWidget(QtGui.QLabel("Select Example"))
@@ -74,11 +75,19 @@ class ShotResolve(QtGui.QAction):
 
         resolved_examples = []
         for src, tmpl in exmpl_dialog.examples:
-            resolved_examples.append([tmpl, eval(src), ShotResolve.shot_resolve(item, tmpl)])
+            resolved_examples.append(
+                [tmpl, eval(src), ShotResolve.shot_resolve(item, tmpl)]  # pylint: disable=eval-used
+            )
 
+        # f-string doen not have pointer formatting as it is shown here
         exmpl_dialog.setToolTip(
             "The exemplary value will be resolved like this:\n{}".format(
-                "\n".join(["{0}:\n  {1} -> {2}".format(*r) for r in resolved_examples])
+                "\n".join(
+                    [
+                        "{0}:\n  {1} -> {2}".format(*r)  # pylint: disable=consider-using-f-string
+                        for r in resolved_examples
+                    ]
+                )
             )
         )
         exmpl_dialog.exec_()
@@ -95,16 +104,17 @@ class ShotResolve(QtGui.QAction):
         """
 
         # possible token that can be evaluated:
-        clip = item.source().name()
-        shot = item.name()
-        track = item.parent().name()
-        filename = item.source().mediaSource().filename()
+        clip = item.source().name()  # pylint: disable=unused-variable
+        shot = item.name()  # pylint: disable=unused-variable
+        track = item.parent().name()  # pylint: disable=unused-variable
+        filename = item.source().mediaSource().filename()  # pylint: disable=unused-variable
 
         search = re.finditer(r"\{(.*?)\}", text)
 
         for token in search:
-            text = text.replace(token.group(), str(eval(token.group(1))))
-
+            text = text.replace(
+                token.group(), str(eval(token.group(1)))  # pylint: disable=eval-used
+            )
         return text
 
     def get_shot_exmpl(self):
@@ -121,9 +131,8 @@ class ShotResolve(QtGui.QAction):
         self.dialog.setLayout(layout)
         self.dialog.setWindowTitle("Rename Shots")
         self.dialog.setToolTip(
-            "valid tokens are {} and basic string operations (split, replace, indices etc)".format(
-                ", ".join(resolve_keys)
-            )
+            f"valid tokens are {', '.join(resolve_keys)} and basic string operations "
+            + "(split, replace, indices etc.)"
             + "\n and hiero internal {item} functions (item.name(), item.source() etc)."
         )
         self.shot_exmpl_button = QtGui.QPushButton("Get Examples")
@@ -163,9 +172,7 @@ class ShotResolve(QtGui.QAction):
                 None,
                 "Resolved Shotnames",
                 "Correctly Resolved all Shotnames?\n  {}".format(
-                    "\n  ".join(
-                        sorted(["{}: {}".format(k.name(), v) for k, v in new_shotnames.items()])
-                    )
+                    "\n  ".join(sorted([f"{k.name()}: {v}" for k, v in new_shotnames.items()]))
                 ),
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.Yes,
