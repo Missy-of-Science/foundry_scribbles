@@ -2,7 +2,8 @@
 Euler Filter by Henriette Adel, June 2017
 algorithm of filter based on:
 https://forum.highend3d.com/t/euler-filter-algorithm/6147
-last updated 2024 (code cleanup)
+last updated 2026
+
 """
 
 import nuke
@@ -36,10 +37,8 @@ def euler_filter(first, last, ro, kopie):
         if progress.isCancelled():
             break
 
-        norm = (i - first) * 100 / (last - first)
-        progress.setProgress(int(norm))
+        progress.setProgress(int((i - first) * 100 / (last - first)))
         progress.setMessage(f"Frame: {i}")
-
         nuke.root()["frame"].setValue(i)
 
         curr = k.valueAt(i)
@@ -47,9 +46,10 @@ def euler_filter(first, last, ro, kopie):
 
         if (
             round(abs(prev[xyz[0]] - curr[xyz[0]])) > 90
-            and round(abs(prev[xyz[1]] - curr[xyz[1]])) > 90
             and round(abs(prev[xyz[2]] - curr[xyz[2]])) > 90
         ):
+            # flip y-axis
+            curr[xyz[1]] = -curr[xyz[1]]
             for axis in xyz:
                 if prev[axis] < curr[axis]:
                     k.setValueAt(curr[axis] - 180, i, axis)
@@ -67,7 +67,7 @@ def euler_filter(first, last, ro, kopie):
 
 
 def euler_fix():
-    "bake animation and prepare euler animation before fixing"
+    "bake animation and preparing euler animation before fixing"
     knob = nuke.thisKnob()
     baked = True
 
@@ -79,18 +79,12 @@ def euler_fix():
                 "Choose a Framerange!",
                 f"{nuke.root().firstFrame()}-{nuke.root().lastFrame()}",
             )
-            frame_range = nuke.FrameRange(ret[0])
+            frange = nuke.FrameRange(ret[0])
             for axis in axes:
                 nuke.animation(
                     f"{knob.name()}.{axis}",
                     "generate",
-                    (
-                        str(frame_range.first()),
-                        str(frame_range.last()),
-                        "1",
-                        "y",
-                        f"{knob.name()}.{axis}",
-                    ),
+                    (str(frange.first()), str(frange.last()), "1", "y", f"{knob.name()}.{axis}"),
                 )
         else:
             return
@@ -118,21 +112,12 @@ def euler_fix():
 
             if not baked:
                 if nuke.ask("This curve doesn't seem to be baked. Would you like to do that now?"):
-                    nuke.animation(
-                        f"{knob.name()}.x",
-                        "generate",
-                        (str(first), str(last), "1", "y", f"{knob.name()}.x"),
-                    )
-                    nuke.animation(
-                        f"{knob.name()}.y",
-                        "generate",
-                        (str(first), str(last), "1", "y", f"{knob.name()}.y"),
-                    )
-                    nuke.animation(
-                        f"{knob.name()}.z",
-                        "generate",
-                        (str(first), str(last), "1", "y", f"{knob.name()}.z"),
-                    )
+                    for axis in axes:
+                        nuke.animation(
+                            f"{knob.name()}.{axis}",
+                            "generate",
+                            (str(first), str(last), "1", "y", f"{knob.name()}.{axis}"),
+                        )
 
             rl = ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]
 

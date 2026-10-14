@@ -1,4 +1,4 @@
-"read camera tracker's feature tracks and export as txt file "
+"read camera tracker's feature tracks and export as txt file"
 
 import os
 import ntpath
@@ -59,8 +59,8 @@ def append_frames(serialized_data, index, tmp, startframe, lifetime_idx=0):
 
 def export_cameratrack(node):
     """export serialize knob as list items
-    - node: which node triggered the action
-    returns nested positions and pattern accuracy across frames in track list
+    -  node: which node triggered the action
+    -  returns nested positions and pattern accuracy across frames in track list
     """
     s = node["serializeKnob"].toScript()
 
@@ -135,4 +135,4 @@ def create_knob():
     if not n.knob("setfeattrack"):
         n.addKnob(knob)
     if n.knob("attention"):
-        n.removeKnob("attention")
+        n.removeKnob(n.knob("attention"))

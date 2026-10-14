@@ -1,9 +1,10 @@
 "Automate Dataset Creation Based on keyframes of frames"
+
 import re
 
 import nuke
-from PySide2.QtWidgets import QMessageBox, QInputDialog
-from PySide2.QtCore import Qt
+from Qt.QtWidgets import QMessageBox, QInputDialog  # pylint:disable=no-name-in-module
+from Qt.QtCore import Qt  # pylint:disable=no-name-in-module
 
 from import_from_flow import setup_shotgun
 
@@ -75,50 +76,63 @@ def get_id():
 
 def get_frames_from_note():
     "get the note the annotated frames relate to"
-    sg = setup_shotgun()
+    sg = None
     frames = []
-    note_id = get_id()
 
-    if not note_id:
+    while True:
+        note_id = get_id()
         if note_id is None:
             nuke.alert("Could not get valid id for Note.")
-        return None
-
-    note = sg.find_one("Note", [["id", "is", note_id]], ["attachments"])
-
-    if not note:
-        nuke.alert(f"{note_id} doesn't match a Note in Flow PTR.")
-        return None
-
-    if not note["attachments"]:
-        nuke.alert("Note does not have anything attached!")
-        return None
-
-    for attm in note["attachments"]:
-        if not attm["name"].startswith("annot_version"):
             continue
 
-        version, frame, _ = attm["name"].split(".")
-        if version.endswith("v2"):
-            frames.append(int(frame))
-        else:
-            sg_version = sg.find_one(
-                "Version", [["id", "is", int(version.split("_")[-1])]], ["sg_first_frame"]
-            )
-            frames.append(int(frame) + sg_version["sg_first_frame"])
+        elif note_id is False:
+            return False
 
-    return sorted(frames)
+        if sg is None:
+            sg = setup_shotgun()
+
+        note = sg.find_one("Note", [["id", "is", note_id]], ["attachments"])
+
+        if not note:
+            nuke.alert(f"{note_id} doesn't match a Note in Flow PTR.")
+            continue
+
+        if not note["attachments"]:
+            nuke.alert("Note does not have anything attached!")
+            continue
+
+        for attm in note["attachments"]:
+            if not attm["name"].startswith("annot_version"):
+                continue
+
+            version, frame, _ = attm["name"].split(".")
+            if version.endswith("v2"):
+                frames.append(int(frame))
+            else:
+                sg_version = sg.find_one(
+                    "Version", [["id", "is", int(version.split("_")[-1])]], ["sg_first_frame"]
+                )
+                frames.append(int(frame) + sg_version["sg_first_frame"])
+
+        return sorted(frames)
 
 
 def get_frames_from_list():
     "get a comma separated list of frames"
 
-    framelist = QInputDialog.getText(None, "Enter List", "Enter frames separated by comma:")
+    framelist = QInputDialog.getText(
+        None, "Enter List", "Enter frames separated by comma:", text="1001, 1005, 1007"
+    )
 
     if framelist[1]:
-        return [int(f.strip()) for f in framelist[0].split(",")]
+        while True:
+            try:
+                return [int(f.strip()) for f in framelist[0].split(",") if f]
+            except ValueError:
+                nuke.message("List must only contain integers.")
+                return get_frames_from_list()
     else:
-        return []
+        return False
 
 
 def set_keyframes(knob, framelist):
@@ -154,6 +168,12 @@ def get_keyframes():
 
     elif ask == 1:
         framelist = get_frames_from_list()
+
+    if framelist is False:
+        return get_keyframes()
+
+    if framelist:
+        QMessageBox.information(None, "Success", f"Successfully added {len(framelist)} keyframes.")
 
     return framelist
 
