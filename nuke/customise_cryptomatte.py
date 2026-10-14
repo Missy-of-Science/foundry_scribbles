@@ -1,6 +1,6 @@
 """
 Cryptomatte Custom Panel
-easlily select Cryptomatte Elements from a Qt Panel, when they are hard to pick by colour for example
+easily select Cryptomatte Elements from a Qt Panel, when they are hard to pick by colour for example
 * drag and drop items from right to left side
 * use KeyModifiers (drop wildcards, remove items from selection, expanded selection, see ToolTips for further use)
 * create new Cryptomatte Node(s) from selection of available mattes
@@ -14,7 +14,11 @@ import fnmatch
 
 import nuke
 import nukescripts
-from PySide2 import QtWidgets, QtCore
+
+try:
+    from PySide2 import QtWidgets, QtCore
+except ImportError:
+    from PySide6 import QtWidgets, QtCore
 
 STYLESHEET = """
 QWidget {

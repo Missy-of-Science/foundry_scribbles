@@ -2,11 +2,14 @@
 
 import json
 import os
-import sys
 import re
 
 import nuke
-from PySide2 import QtWidgets, QtCore
+
+try:
+    from PySide2 import QtWidgets, QtCore
+except ImportError:
+    from PySide6 import QtWidgets, QtCore
 
 
 class SGPlaylistDialog(QtWidgets.QDialog):

@@ -10,7 +10,10 @@ added UI with Ok and Yes options to let user know it's not some random Nuke shut
 import os
 
 from random import randint
-from PySide2.QtWidgets import QMessageBox
+try:
+    from PySide6.QtWidgets import QMessageBox
+except ImportError:
+    from PySide2.QtWidgets import QMessageBox
 
 kaboom = randint(1, 6)
 user = os.environ["USERNAME"]
